@@ -35,143 +35,81 @@
                 <!-- Simulador de Avance de Carrera -->
                 <div class="simulador-section">
                     <h2><i class="fas fa-chart-pie"></i> Simulador de Avance de Carrera</h2>
-                    
-                    <!-- Selector de Plan -->
-                    <div class="plan-selector" style="margin-bottom: 1.5rem; text-align: center;">
-                        <select id="planSelector" class="btn" style="min-width: 180px;">
+                    <!-- Bloque para iniciar simulador -->
+                    <div class="iniciar-simulador" style="display: flex; flex-direction: column; align-items: center; gap: 1.2rem;">
+                        <select id="planSelector" class="btn" style="min-width: 180px; margin-bottom: 1rem;">
                             <option value="17.14" selected>Plan 17.14</option>
                             <option value="17.13">Plan 17.13</option>
                         </select>
-                    </div>
-                    
-                    <!-- Botón para Iniciar Simulador -->
-                    <div class="iniciar-simulador">
                         <button class="btn btn-primary btn-large" onclick="iniciarSimulador()">
                             <i class="fas fa-play"></i> Iniciar Simulador
                         </button>
-                        <p class="simulador-info">Haz clic para comenzar a simular tu avance académico</p>
+                        <p class="simulador-info">Selecciona el plan y haz clic para comenzar a simular tu avance académico</p>
                     </div>
-                    
                     <!-- Contenido del Simulador (inicialmente oculto) -->
                     <div id="contenidoSimulador" class="contenido-simulador" style="display: none;">
-                        <!-- Botones de acciones avanzadas -->
-                        <div class="simulador-actions" style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 1.5rem;">
+                        <div class="simulador-top-bar">
                             <button class="btn btn-secondary" id="btnSugerirMaterias" type="button">
                                 <i class="fas fa-lightbulb"></i> ¿Qué puedo cursar el próximo cuatrimestre?
                             </button>
-                            <button class="btn btn-primary" id="btnExportarPDF" type="button">
+                        </div>
+                        <hr class="simulador-top-divider">
+                        <div id="sugerenciasMaterias" style="display:none; margin-bottom: 1rem;"></div>
+                        <!-- Timeline de Cuatrimestres -->
+                        <div class="timeline-container">
+                            <h3>Estado de Materias por Cuatrimestre</h3>
+                            <div class="timeline" id="timelineCuatrimestres">
+                                <!-- Se generará dinámicamente -->
+                            </div>
+                        </div>
+                        <!-- Resumen de Progreso y PDF al final -->
+                        <div class="simulador-bottom-actions" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 2.5em; margin-top: 2.5em;">
+                            <div class="progreso-resumen" style="max-width: 600px; min-width: 260px; flex: 1 1 320px;">
+                                <h4><i class="fas fa-chart-line"></i> Resumen de Progreso</h4>
+                                <div class="resumen-stats">
+                                    <div class="resumen-stat">
+                                        <span class="numero" id="resumenAprobadas">0</span>
+                                        <span class="etiqueta">Aprobadas</span>
+                                    </div>
+                                    <div class="resumen-stat">
+                                        <span class="numero" id="resumenPromocionadas">0</span>
+                                        <span class="etiqueta">Promocionadas</span>
+                                    </div>
+                                    <div class="resumen-stat">
+                                        <span class="numero" id="resumenFinales">0</span>
+                                        <span class="etiqueta">Finales dados</span>
+                                    </div>
+                                    <div class="resumen-stat">
+                                        <span class="numero" id="resumenCursando">0</span>
+                                        <span class="etiqueta">Cursando</span>
+                                    </div>
+                                    <div class="resumen-stat">
+                                        <span class="numero" id="resumenRegulares">0</span>
+                                        <span class="etiqueta">Regulares</span>
+                                    </div>
+                                    <div class="resumen-stat">
+                                        <span class="numero" id="resumenDisponibles">0</span>
+                                        <span class="etiqueta">Disponibles</span>
+                                    </div>
+                                    <div class="resumen-stat">
+                                        <span class="numero" id="resumenBloqueadas">0</span>
+                                        <span class="etiqueta">Bloqueadas</span>
+                                    </div>
+                                    <div class="resumen-stat">
+                                        <span class="numero" id="resumenAvanceTotal">0%</span>
+                                        <span class="etiqueta">Avance total</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 2em; text-align: center; display: flex; justify-content: center; gap: 1.5em;">
+                            <button class="btn btn-secondary" onclick="resetearSimulador()">
+                                <i class="fas fa-undo"></i> Resetear Simulador
+                            </button>
+                            <button class="btn btn-primary" id="btnExportarPDF" type="button" style="max-width: 220px; width: 100%;">
                                 <i class="fas fa-file-pdf"></i> Descargar avance en PDF
                             </button>
                         </div>
-                        <div id="sugerenciasMaterias" style="display:none; margin-bottom: 1rem;"></div>
-                        <!-- Leyenda de Estados -->
-                        <div class="estados-leyenda">
-                            <h4>Leyenda de Estados:</h4>
-                            <div class="leyenda-items">
-                                <div class="leyenda-item">
-                                    <span class="estado-badge pendiente">X</span>
-                                    <span>Pendiente (No disponible)</span>
-                                </div>
-                                <div class="leyenda-item">
-                                    <span class="estado-badge cursando">C</span>
-                                    <span>Cursando</span>
-                                </div>
-                                <div class="leyenda-item">
-                                    <span class="estado-badge regular">R</span>
-                                    <span>Regular (Aprobada, pendiente final)</span>
-                                </div>
-                                <div class="leyenda-item">
-                                    <span class="estado-badge final-aprobado">F</span>
-                                    <span>Final Aprobado</span>
-                                </div>
-                                <div class="leyenda-item">
-                                    <span class="estado-badge promocionada">P</span>
-                                    <span>Promocionada</span>
-                                </div>
-                            </div>
-                        </div>
-                    
-                    <!-- Resumen de Progreso -->
-                    <div class="progreso-resumen">
-                        <h4><i class="fas fa-chart-line"></i> Resumen de Progreso</h4>
-                        <div class="resumen-stats">
-                            <div class="resumen-stat">
-                                <span class="numero" id="resumenAprobadas">0</span>
-                                <span class="etiqueta">Aprobadas</span>
-                            </div>
-                            <div class="resumen-stat">
-                                <span class="numero" id="resumenRegulares">0</span>
-                                <span class="etiqueta">Regulares</span>
-                            </div>
-                            <div class="resumen-stat">
-                                <span class="numero" id="resumenDisponibles">0</span>
-                                <span class="etiqueta">Disponibles</span>
-                            </div>
-                            <div class="resumen-stat">
-                                <span class="numero" id="resumenBloqueadas">0</span>
-                                <span class="etiqueta">Bloqueadas</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Gráfico de Progreso -->
-                    <div class="progreso-container">
-                        <div class="progreso-chart">
-                            <!-- Círculo Externo (Promocionadas/Final) -->
-                            <div class="chart-circle chart-outer" id="chartOuter">
-                                <div class="chart-progress chart-inner" id="chartInner">
-                                    <span class="progress-number" id="progressNumber">0%</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="progreso-stats">
-                            <div class="stat-item">
-                                <span class="stat-label">Promocionadas/Final</span>
-                                <span class="stat-value" id="materiasPromocionadas">0</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Solo Regular</span>
-                                <span class="stat-value" id="materiasSoloRegular">0</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Materias Disponibles</span>
-                                <span class="stat-value" id="materiasDisponibles">0</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Total Materias</span>
-                                <span class="stat-value" id="totalMaterias">0</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Leyenda del Gráfico -->
-                    <div class="chart-legend">
-                        <div class="legend-item">
-                            <div class="legend-color outer-color"></div>
-                            <span>Círculo Externo: Promocionadas/Final Aprobado</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color inner-color"></div>
-                            <span>Círculo Interno: Solo Regular</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color center-color"></div>
-                            <span>Centro: % Solo Promocionadas/Final</span>
-                        </div>
-                    </div>
-
-                    <!-- Timeline de Cuatrimestres -->
-                    <div class="timeline-container">
-                        <h3>Estado de Materias por Cuatrimestre</h3>
-                        <div class="timeline" id="timelineCuatrimestres">
-                            <!-- Se generará dinámicamente -->
-                        </div>
-                    </div>
-                    <!-- Botón de resetear al final -->
-                    <div style="margin-top: 2.5em; text-align: center;">
-                        <button class="btn btn-secondary" onclick="resetearSimulador()">
-                            <i class="fas fa-undo"></i> Resetear Simulador
-                        </button>
                     </div>
                 </div> <!-- Cierre del contenido del simulador -->
             </div> <!-- Cierre de la sección simulador -->
@@ -1015,7 +953,33 @@
         </div>
     </div>
 
+    <!-- Botón flotante para volver arriba -->
+    <button id="btnScrollTop" style="display:none; position:fixed; bottom:32px; right:32px; z-index:9999; background:#667eea; color:white; border:none; border-radius:50%; width:52px; height:52px; box-shadow:0 4px 16px rgba(102,126,234,0.25); font-size:2rem; cursor:pointer; align-items:center; justify-content:center; transition:opacity 0.3s;">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="script.js"></script>
+    <script>
+        // Mostrar/ocultar botón flotante al scrollear
+        window.addEventListener('scroll', function() {
+            const btn = document.getElementById('btnScrollTop');
+            if (!btn) return;
+            if (window.scrollY > 200) {
+                btn.style.display = 'flex';
+                btn.style.opacity = '1';
+            } else {
+                btn.style.opacity = '0';
+                setTimeout(() => { if (window.scrollY <= 200) btn.style.display = 'none'; }, 300);
+            }
+        });
+        // Scroll suave al tope
+        const btnScrollTop = document.getElementById('btnScrollTop');
+        if (btnScrollTop) {
+            btnScrollTop.addEventListener('click', function() {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
+    </script>
 </body>
 </html>

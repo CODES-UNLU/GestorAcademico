@@ -408,13 +408,22 @@ function setupEventListeners() {
     });
 
     // Formulario de agregar equivalencia
-    document.getElementById('equivalenciaForm').addEventListener('submit', handleAddEquivalencia);
+    const equivalenciaForm = document.getElementById('equivalenciaForm');
+    if (equivalenciaForm) {
+        equivalenciaForm.addEventListener('submit', handleAddEquivalencia);
+    }
 
     // Formulario de edición
-    document.getElementById('editForm').addEventListener('submit', handleEditEquivalencia);
+    const editForm = document.getElementById('editForm');
+    if (editForm) {
+        editForm.addEventListener('submit', handleEditEquivalencia);
+    }
 
     // Modal
-    document.querySelector('.close').addEventListener('click', closeModal);
+    const closeBtn = document.querySelector('.close');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeModal);
+    }
     window.addEventListener('click', function(event) {
         if (event.target === document.getElementById('editModal')) {
             closeModal();
@@ -935,6 +944,15 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// === Mapeo de estados para badge del simulador ===
+const estadosMateriaBadge = {
+  pendiente: { texto: "Pendiente (No disponible)", color: "#757575" }, // gris oscuro
+  cursando: { texto: "Cursando", color: "#2196f3" },                  // azul
+  regular: { texto: "Regular (Aprobada, pendiente final)", color: "#ffc107", textColor: "#333" }, // amarillo
+  "final-aprobado": { texto: "Final Aprobado", color: "#00bcd4" },    // celeste
+  promocionada: { texto: "Promocionada", color: "#9c27b0" }           // violeta
+};
+
 // ===== SIMULADOR DE AVANCE DE CARRERA =====
 
 // --- DEFINICIÓN DEL PLAN 17.14 (dejar esto al principio) ---
@@ -1092,7 +1110,6 @@ function initializeSimulador() {
     }
     // Renderizar correctamente
     renderTimelineCuatrimestres();
-    updateProgresoChart();
     updateEstadisticas();
 }
 
@@ -1146,13 +1163,26 @@ function renderMateriaTimeline(materia) {
     const estado = estadoMateriasPorPlan[planSeleccionado][materia.codigo] || 'pendiente';
     const puedeCursar = puedeCursarMateria(materia);
     let materiaClass = 'materia-timeline';
+    materiaClass += ` estado-${estado}`; // Clase dinámica para color de fondo
     if (estado === 'pendiente' && puedeCursar) {
         materiaClass += ' disponible';
     } else if (estado === 'pendiente' && !puedeCursar) {
         materiaClass += ' bloqueada';
     }
+    // Badge dinámico según estado y disponibilidad
+    let badgeData;
+    if (estado === 'pendiente') {
+        if (puedeCursar) {
+            badgeData = { texto: 'Disponible', color: '#28a745' }; // verde
+        } else {
+            badgeData = { texto: 'Bloqueada', color: '#dc3545' };
+        }
+    } else {
+        badgeData = estadosMateriaBadge[estado];
+    }
+    const badge = `<div class="badge" style="position:absolute;bottom:8px;right:10px;background:${badgeData.color};color:${badgeData.textColor || '#fff'};padding:2px 10px;border-radius:20px;font-size:0.8rem;font-weight:bold;z-index:10;opacity:0.95;">${badgeData.texto}</div>`;
     return `
-        <div class="${materiaClass}">
+        <div class="${materiaClass}" style="position:relative;">
             <div class="materia-nombre">${materia.nombre}</div>
             <div class="materia-info">
                 <div class="materia-codigo">${materia.codigo}</div>
@@ -1179,6 +1209,7 @@ function renderMateriaTimeline(materia) {
                     </button>
                 </div>
             </div>
+            ${badge}
         </div>
     `;
 }
@@ -1216,7 +1247,6 @@ function cambiarEstadoMateria(codigo, nuevoEstado) {
     estadoMateriasPorPlan[planSeleccionado][codigo] = nuevoEstado;
     saveEstadoMaterias();
     renderTimelineCuatrimestres();
-    updateProgresoChart();
     updateEstadisticas();
 }
 
@@ -1249,10 +1279,11 @@ function updateProgresoChart() {
 
 // Actualizar estadísticas (adaptado)
 function updateEstadisticas() {
+    if (!document.getElementById('resumenAprobadas')) return; // Solo si el resumen está en el DOM
     const totalMaterias = planEstudiosActual.cuatrimestres.reduce((total, cuat) => total + cuat.materias.length, 0);
-    const materiasPromocionadas = Object.values(estadoMateriasPorPlan[planSeleccionado]).filter(estado =>
-        estado === 'promocionada' || estado === 'final-aprobado'
-    ).length;
+    const materiasPromocionadas = Object.values(estadoMateriasPorPlan[planSeleccionado]).filter(estado => estado === 'promocionada').length;
+    const materiasFinalAprobado = Object.values(estadoMateriasPorPlan[planSeleccionado]).filter(estado => estado === 'final-aprobado').length;
+    const materiasCursando = Object.values(estadoMateriasPorPlan[planSeleccionado]).filter(estado => estado === 'cursando').length;
     const materiasSoloRegular = Object.values(estadoMateriasPorPlan[planSeleccionado]).filter(estado => estado === 'regular').length;
     const materiasDisponibles = planEstudiosActual.cuatrimestres.reduce((total, cuat) => {
         return total + cuat.materias.filter(m => puedeCursarMateria(m) && !estadoMateriasPorPlan[planSeleccionado][m.codigo]).length;
@@ -1260,21 +1291,17 @@ function updateEstadisticas() {
     const materiasBloqueadas = planEstudiosActual.cuatrimestres.reduce((total, cuat) => {
         return total + cuat.materias.filter(m => !puedeCursarMateria(m) && !estadoMateriasPorPlan[planSeleccionado][m.codigo]).length;
     }, 0);
-    if (document.getElementById('materiasPromocionadas')) {
-        document.getElementById('materiasPromocionadas').textContent = materiasPromocionadas;
-    }
-    if (document.getElementById('materiasSoloRegular')) {
-        document.getElementById('materiasSoloRegular').textContent = materiasSoloRegular;
-    }
-    document.getElementById('materiasDisponibles').textContent = materiasDisponibles;
-    document.getElementById('totalMaterias').textContent = totalMaterias;
-    if (document.getElementById('resumenAprobadas')) {
-        const totalAprobadas = materiasPromocionadas + materiasSoloRegular;
-        document.getElementById('resumenAprobadas').textContent = totalAprobadas;
-        document.getElementById('resumenRegulares').textContent = materiasSoloRegular;
-        document.getElementById('resumenDisponibles').textContent = materiasDisponibles;
-        document.getElementById('resumenBloqueadas').textContent = materiasBloqueadas;
-    }
+    const totalAprobadas = materiasPromocionadas + materiasFinalAprobado;
+    document.getElementById('resumenAprobadas').textContent = totalAprobadas;
+    document.getElementById('resumenPromocionadas').textContent = materiasPromocionadas;
+    document.getElementById('resumenFinales').textContent = materiasFinalAprobado;
+    document.getElementById('resumenCursando').textContent = materiasCursando;
+    document.getElementById('resumenRegulares').textContent = materiasSoloRegular;
+    document.getElementById('resumenDisponibles').textContent = materiasDisponibles;
+    document.getElementById('resumenBloqueadas').textContent = materiasBloqueadas;
+    // Avance total
+    const avanceTotal = totalMaterias > 0 ? Math.round((totalAprobadas / totalMaterias) * 100) : 0;
+    document.getElementById('resumenAvanceTotal').textContent = avanceTotal + '%';
 }
 
 // Resetear simulador (adaptado)
@@ -1283,7 +1310,6 @@ function resetearSimulador() {
         estadoMateriasPorPlan[planSeleccionado] = {};
         saveEstadoMaterias();
         renderTimelineCuatrimestres();
-        updateProgresoChart();
         updateEstadisticas();
         mostrarNotificacion('Simulador reseteado correctamente', 'success');
     }
@@ -1332,26 +1358,51 @@ function sugerirMateriasDisponibles() {
     const plan = planEstudiosActual;
     const avance = estadoMateriasPorPlan[planSeleccionado];
     let sugeridas = [];
-    // Buscar materias disponibles (puedeCursarMateria==true y no aprobada)
+    // Detectar mes actual
+    const mes = new Date().getMonth() + 1; // 1-12
+    let tipoCuat = 'ambos';
+    if (mes >= 3 && mes <= 7) {
+        tipoCuat = 'par'; // Marzo a Julio: cuatrimestres pares
+    } else if (mes >= 8 && mes <= 11) {
+        tipoCuat = 'impar'; // Agosto a Noviembre: cuatrimestres impares
+    }
+    // Buscar materias disponibles SOLO del tipo de cuatrimestre correspondiente
     plan.cuatrimestres.forEach((cuat, idx) => {
-        cuat.materias.forEach(materia => {
-            if (!avance[materia.codigo] || avance[materia.codigo] === 'pendiente') {
-                if (puedeCursarMateria(materia)) {
-                    sugeridas.push({
-                        cuatrimestre: cuat.nombre,
-                        codigo: materia.codigo,
-                        nombre: materia.nombre
-                    });
+        const esImpar = cuat.numero % 2 === 1;
+        const esPar = cuat.numero % 2 === 0;
+        if (
+            tipoCuat === 'ambos' ||
+            (tipoCuat === 'impar' && esImpar) ||
+            (tipoCuat === 'par' && esPar)
+        ) {
+            cuat.materias.forEach(materia => {
+                if (!avance[materia.codigo] || avance[materia.codigo] === 'pendiente') {
+                    if (puedeCursarMateria(materia)) {
+                        sugeridas.push({
+                            cuatrimestre: cuat.nombre,
+                            codigo: materia.codigo,
+                            nombre: materia.nombre
+                        });
+                    }
                 }
-            }
-        });
+            });
+        }
     });
+    // Mensaje de tipo de sugerencia
+    let infoTipo = '';
+    if (tipoCuat === 'impar') {
+        infoTipo = '<div style="color:#1976d2; font-size:0.95em; margin-bottom:0.5em;">Mostrando materias de cuatrimestres <b>impares</b> (Agosto-Noviembre)</div>';
+    } else if (tipoCuat === 'par') {
+        infoTipo = '<div style="color:#1976d2; font-size:0.95em; margin-bottom:0.5em;">Mostrando materias de cuatrimestres <b>pares</b> (Marzo-Julio)</div>';
+    } else {
+        infoTipo = '<div style="color:#1976d2; font-size:0.95em; margin-bottom:0.5em;">Mostrando materias de <b>todos los cuatrimestres</b> (Fuera de ciclo lectivo)</div>';
+    }
     // Mostrar sugerencias
     const cont = document.getElementById('sugerenciasMaterias');
     if (sugeridas.length === 0) {
-        cont.innerHTML = '<div class="progreso-resumen" style="color:#388e3c;">¡Ya puedes cursar todas las materias o has completado el plan!</div>';
+        cont.innerHTML = infoTipo + '<div class="progreso-resumen" style="color:#388e3c;">¡Ya puedes cursar todas las materias o has completado el plan!</div>';
     } else {
-        cont.innerHTML = '<div class="progreso-resumen"><b>Materias que puedes cursar el próximo cuatrimestre:</b><ul style="margin:0; padding-left:1.2em;">' +
+        cont.innerHTML = infoTipo + '<div class="progreso-resumen"><b>Materias que puedes cursar el próximo cuatrimestre:</b><ul style="margin:0; padding-left:1.2em;">' +
             sugeridas.map(m => `<li><b>${m.codigo}</b> - ${m.nombre} <span style='color:#888;font-size:0.9em;'>(${m.cuatrimestre})</span></li>`).join('') +
             '</ul></div>';
     }
@@ -1371,34 +1422,119 @@ function exportarAvancePDF() {
         mostrarNotificacion('jsPDF no está cargado. Agrega la librería jsPDF para exportar a PDF.', 'error');
         return;
     }
-    const doc = new jsPDFClass();
+    const doc = new jsPDFClass({ unit: 'pt', format: 'a4' });
     const plan = planEstudiosActual;
     const avance = estadoMateriasPorPlan[planSeleccionado];
-    // Calcular porcentaje de avance (solo promocionadas/final-aprobado)
+    // Calcular estadísticas
     const totalMaterias = plan.cuatrimestres.reduce((total, cuat) => total + cuat.materias.length, 0);
-    const materiasPromocionadas = Object.values(avance).filter(estado => estado === 'promocionada' || estado === 'final-aprobado').length;
-    const porcentaje = totalMaterias > 0 ? Math.round((materiasPromocionadas / totalMaterias) * 100) : 0;
-    let y = 15;
-    doc.setFontSize(16);
-    doc.text(`Avance académico - Plan ${planSeleccionado} (Avance: ${porcentaje}%)`, 10, y);
-    y += 8;
-    doc.setFontSize(11);
+    const materiasPromocionadas = Object.values(avance).filter(estado => estado === 'promocionada').length;
+    const materiasFinalAprobado = Object.values(avance).filter(estado => estado === 'final-aprobado').length;
+    const materiasCursando = Object.values(avance).filter(estado => estado === 'cursando').length;
+    const materiasSoloRegular = Object.values(avance).filter(estado => estado === 'regular').length;
+    const materiasDisponibles = plan.cuatrimestres.reduce((total, cuat) => {
+        return total + cuat.materias.filter(m => puedeCursarMateria(m) && !avance[m.codigo]).length;
+    }, 0);
+    const materiasBloqueadas = plan.cuatrimestres.reduce((total, cuat) => {
+        return total + cuat.materias.filter(m => !puedeCursarMateria(m) && !avance[m.codigo]).length;
+    }, 0);
+    const totalAprobadas = materiasPromocionadas + materiasFinalAprobado;
+    const avanceTotal = totalMaterias > 0 ? Math.round((totalAprobadas / totalMaterias) * 100) : 0;
+    // --- Sin encabezado, solo título y resumen ---
+    let y = 50;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(15);
+    doc.setTextColor(51,51,51);
+    doc.text('Resumen de Progreso', 40, y);
+    y += 18;
+    // Badges en dos columnas, ahora con colores pastel suaves
+    const stats = [
+        { label: 'Aprobadas', value: totalAprobadas, color: [210, 245, 225], textColor: [40, 167, 69] }, // verde pastel
+        { label: 'Promocionadas', value: materiasPromocionadas, color: [240, 225, 250], textColor: [156, 39, 176] }, // violeta pastel
+        { label: 'Finales dados', value: materiasFinalAprobado, color: [220, 245, 250], textColor: [0, 188, 212] }, // celeste pastel
+        { label: 'Cursando', value: materiasCursando, color: [225, 235, 255], textColor: [33, 150, 243] }, // azul pastel
+        { label: 'Regulares', value: materiasSoloRegular, color: [255, 250, 220], textColor: [255, 193, 7] }, // amarillo pastel
+        { label: 'Disponibles', value: materiasDisponibles, color: [230, 255, 230], textColor: [40, 167, 69] }, // verde muy claro
+        { label: 'Bloqueadas', value: materiasBloqueadas, color: [255, 230, 230], textColor: [220, 53, 69] }, // rojo pastel
+        { label: 'Avance total', value: avanceTotal + '%', color: [235, 235, 235], textColor: [100, 100, 100] } // gris claro
+    ];
+    const badgeW = 230, badgeH = 38, badgePad = 12, badgeGapY = 16, badgeGapX = 30;
+    let badgeX = 40, badgeY = y;
+    doc.setFont('helvetica', 'normal');
+    for (let i = 0; i < stats.length; i++) {
+        const stat = stats[i];
+        // Fondo badge pastel
+        doc.setFillColor(...stat.color);
+        doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 8, 8, 'F');
+        // Etiqueta
+        doc.setTextColor(...stat.textColor);
+        doc.setFontSize(11);
+        doc.text(stat.label, badgeX + badgePad, badgeY + 18);
+        // Valor
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(17);
+        doc.text(String(stat.value), badgeX + badgeW - badgePad - 10, badgeY + 25, { align: 'right' });
+        doc.setFont('helvetica', 'normal');
+        // Siguiente columna/fila
+        if (i % 2 === 0) {
+            badgeX += badgeW + badgeGapX;
+        } else {
+            badgeX = 40;
+            badgeY += badgeH + badgeGapY;
+        }
+    }
+    y = badgeY + badgeH + badgeGapY + 10;
+    // --- Separador visual ---
+    doc.setDrawColor(180, 180, 180);
+    doc.setLineWidth(1);
+    doc.line(40, y, 555, y);
+    y += 18;
+    // --- Detalle de materias ---
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(51,51,51);
+    doc.text('Detalle de materias', 40, y);
+    y += 12;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
     plan.cuatrimestres.forEach((cuat, idx) => {
-        doc.setFont(undefined, 'bold');
-        doc.text(`${cuat.nombre}`, 10, y);
-        y += 6;
-        doc.setFont(undefined, 'normal');
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(102, 126, 234);
+        doc.text(`${cuat.nombre}`, 50, y);
+        y += 10;
+        doc.setFont('helvetica', 'normal');
         cuat.materias.forEach(materia => {
             let estado = avance[materia.codigo] || 'Pendiente';
-            if (estado === 'pendiente') estado = 'Pendiente';
-            if (estado === 'regular') estado = 'Regular';
-            if (estado === 'promocionada') estado = 'Promocionada';
-            if (estado === 'final-aprobado') estado = 'Final Aprobado';
-            doc.text(`${materia.codigo} - ${materia.nombre} [${estado}]`, 14, y);
-            y += 6;
-            if (y > 270) { doc.addPage(); y = 15; }
+            let color = [120,120,120];
+            if (estado === 'pendiente') { estado = 'Pendiente'; color = [120,120,120]; }
+            if (estado === 'regular') { estado = 'Regular'; color = [255,193,7]; }
+            if (estado === 'promocionada') { estado = 'Promocionada'; color = [156,39,176]; }
+            if (estado === 'final-aprobado') { estado = 'Final Aprobado'; color = [0,188,212]; }
+            if (estado === 'cursando') { estado = 'Cursando'; color = [33,150,243]; }
+            doc.setTextColor(51,51,51);
+            doc.text(`- ${materia.codigo}  ${materia.nombre}`, 60, y);
+            doc.setTextColor(...color);
+            doc.text(`[${estado}]`, 400, y);
+            y += 10;
+            if (y > 770) {
+                addPDFPie(doc);
+                doc.addPage();
+                y = 50;
+            }
         });
-        y += 2;
+        y += 6;
     });
+    // Pie de página final
+    addPDFPie(doc);
     doc.save(`avance_plan_${planSeleccionado}.pdf`);
+}
+// Pie de página elegante
+function addPDFPie(doc) {
+    const fecha = new Date().toLocaleDateString();
+    doc.setDrawColor(220,220,220);
+    doc.setLineWidth(0.7);
+    doc.line(40, 820, 555, 820);
+    doc.setFontSize(9);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`Gestor Académico de Sistemas  |  Generado el ${fecha}`, 297.5, 835, { align: 'center' });
+    doc.setTextColor(30, 30, 30);
 }

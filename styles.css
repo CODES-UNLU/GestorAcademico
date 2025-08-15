@@ -1113,7 +1113,7 @@ tr:hover {
     color: #ffc107;
 }
 .estado-btn.estado-promocionada .estado-letra {
-    color: #28a745;
+    color: #9c27b0;
 }
 .estado-btn.estado-final-aprobado .estado-letra {
     color: #1976d2;
@@ -1129,7 +1129,7 @@ tr:hover {
     color: #ffc107;
 }
 .estado-badge.promocionada {
-    color: #28a745;
+    color: #9c27b0;
 }
 .estado-badge.final-aprobado {
     color: #1976d2;
@@ -1210,6 +1210,7 @@ tr:hover {
 }
 
 /* Indicador de materia disponible */
+/*
 .materia-timeline.disponible::before {
     content: "✨ DISPONIBLE";
     position: absolute;
@@ -1225,6 +1226,7 @@ tr:hover {
     z-index: 10;
     opacity: 0.95;
 }
+*/
 
 /* Materias bloqueadas */
 .materia-timeline.bloqueada {
@@ -1250,6 +1252,7 @@ tr:hover {
 }
 
 /* Indicador de materia bloqueada */
+/*
 .materia-timeline.bloqueada::before {
     content: "🔒 BLOQUEADA";
     position: absolute;
@@ -1265,6 +1268,7 @@ tr:hover {
     z-index: 10;
     opacity: 0.95;
 }
+*/
 
 /* Contador de materias disponibles por cuatrimestre */
 .cuatrimestre-header {
@@ -1345,5 +1349,47 @@ tr:hover {
     .legend-item {
         justify-content: flex-start;
         text-align: left;
+    }
+}
+
+.materia-timeline.estado-pendiente {
+    background: #f5f5f5;
+    border: 2px solid #757575;
+}
+.materia-timeline.estado-cursando {
+    background: #e3f2fd;
+    border: 2px solid #2196f3;
+}
+.materia-timeline.estado-regular {
+    background: #fffde7;
+    border: 2px solid #ffc107;
+}
+.materia-timeline.estado-final-aprobado {
+    background: #e0f7fa;
+    border: 2px solid #00bcd4;
+}
+.materia-timeline.estado-promocionada {
+    background: #f3e5f5;
+    border: 2px solid #9c27b0;
+}
+
+.simulador-top-bar {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+.simulador-top-divider {
+    border: none;
+    border-top: 1.5px solid #e0e0e0;
+    margin: 0 0 2rem 0;
+}
+@media (max-width: 768px) {
+    .simulador-top-bar {
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
     }
 }
