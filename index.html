@@ -55,18 +55,13 @@
         var okBtn = document.getElementById('btnEntendidoBeta');
         function closeModal() {
           modal.style.display = 'none';
-          localStorage.setItem('betaModalVisto', '1');
         }
         closeBtn.onclick = closeModal;
         okBtn.onclick = closeModal;
         window.onclick = function(event) {
           if (event.target === modal) closeModal();
         };
-        if (!localStorage.getItem('betaModalVisto')) {
-          modal.style.display = 'flex';
-        } else {
-          modal.style.display = 'none';
-        }
+        modal.style.display = 'flex';
       });
     </script>
 </body>
