@@ -1,3 +1,17 @@
+:root {
+  --primary: #39c0c3;
+  --primary-dark: #2a8a8d;
+  --secondary: #1a1a1a;
+  --background: #ffffff;
+  --background-alt: #f8f9fa;
+  --text: #2c3e50;
+  --text-light: #6c757d;
+  --border: #e9ecef;
+  --shadow: 0 10px 30px rgba(0,0,0,0.1);
+  --shadow-hover: 0 20px 40px rgba(0,0,0,0.15);
+  --gradient: linear-gradient(135deg, #39c0c3 0%, #2a8a8d 100%);
+}
+
 /* Reset and base styles */
 * {
     margin: 0;
@@ -7,9 +21,9 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--gradient);
     min-height: 100vh;
-    color: #333;
+    color: var(--text);
 }
 
 .container {
@@ -23,11 +37,15 @@ body {
 
 /* Header */
 .header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: var(--gradient);
+    color: #fff;
     padding: 2rem;
     text-align: center;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1001;
+    margin-bottom: 0;
 }
 
 .header h1 {
@@ -94,6 +112,7 @@ body {
     padding: 2rem;
     min-height: calc(100vh - 200px);
     overflow: visible;
+    padding-top: 20px;
 }
 
 .tab-content {
@@ -140,11 +159,11 @@ body {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--gradient);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: #fff;
     font-size: 1.5rem;
 }
 
@@ -405,6 +424,8 @@ tr:hover {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    justify-content: center; /* Centra el texto del botón */
+    text-align: center;      /* Centra el texto si el botón no es flex */
 }
 
 .btn-large {
@@ -414,13 +435,14 @@ tr:hover {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: var(--gradient);
+    color: #fff;
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    background: linear-gradient(135deg, #2a8a8d 0%, #39c0c3 100%);
+    color: #fff;
+    box-shadow: var(--shadow-hover);
 }
 
 .btn-secondary {
@@ -1425,4 +1447,44 @@ tr:hover {
         width: 100%;
         min-width: 0;
     }
+    .main-content {
+        padding: 0.5rem;
+        padding-top: 10px;
+    }
+    .login-container {
+        max-width: 100%;
+        margin: 1rem auto;
+    }
+    .login-form {
+        padding: 1rem !important;
+    }
+    .login-form input,
+    .login-form select {
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+    .login-form button {
+        width: 100%;
+    }
+    #logoutContainer {
+        position: static !important;
+        margin-top: 1.2em;
+        display: flex;
+        justify-content: center;
+        text-align: center;
+    }
+}
+
+.logo-codes {
+    box-shadow: 0 4px 24px rgba(57,192,195,0.25), 0 1.5px 8px rgba(44,62,80,0.10);
+    border-radius: 12px;
+    transition: transform 0.25s cubic-bezier(.4,2,.6,1), box-shadow 0.25s;
+    background: #fff;
+    padding: 0.2em 0.5em;
+}
+.logo-codes:hover {
+    transform: scale(1.08) rotate(-2deg);
+    box-shadow: 0 8px 32px rgba(57,192,195,0.35), 0 3px 16px rgba(44,62,80,0.15);
+    background: #f8f9fa;
 }

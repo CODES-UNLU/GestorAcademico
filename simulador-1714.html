@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador Plan 17.14</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header" style="display:flex;align-items:center;gap:1.5rem;">
+            <img src="LOGO SIN FONDO.png" alt="Logo CODES++" class="logo-codes" style="height:60px;width:auto;display:block;">
+            <div style="flex:1;">
+                <h1 style="margin-bottom:0.2em;"><i class="fas fa-graduation-cap"></i> Simulador Plan 17.14</h1>
+                <span id="bienvenidaUsuario" class="bienvenida-usuario" style="font-size:1.05rem;color:#fff;margin-top:0.2em;text-align:center;"></span>
+            </div>
+            <div id="barraProgresoContainer" style="width:100%;max-width:700px;margin:1.5em auto 0.5em auto;padding:0 1em;">
+                <div style="background:#e3e3e3;border-radius:12px;height:22px;position:relative;width:100%;">
+                    <div id="barraProgreso" style="background:linear-gradient(90deg,#667eea,#28a745);height:100%;border-radius:12px 0 0 12px;width:0%;transition:width 0.5s;"></div>
+                    <span id="barraProgresoTexto" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:1rem;font-weight:600;color:#333;">0%</span>
+                </div>
+            </div>
+        </header>
+        <main class="main-content">
+            <div class="simulador-section">
+                <div id="contenidoSimulador" style="display:none; margin-top:2em;">
+                    <!-- Aquí irá el contenido del simulador una vez iniciado -->
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="simulador-1714.js"></script>
+</body>
+</html>
