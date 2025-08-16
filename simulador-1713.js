@@ -204,7 +204,8 @@ function exportarAvancePDF() {
     const jsPDFClass = window.jspdf?.jsPDF || window.jsPDF;
     const doc = new jsPDFClass({ unit: 'pt', format: 'a4' });
     const avance = loadAvance();
-    const fecha = new Date().toLocaleDateString();
+    const fecha = new Date();
+    const fechaStr = fecha.getFullYear() + '-' + String(fecha.getMonth()+1).padStart(2,'0') + '-' + String(fecha.getDate()).padStart(2,'0') + '_' + String(fecha.getHours()).padStart(2,'0') + '-' + String(fecha.getMinutes()).padStart(2,'0');
     // Agregar logo institucional (mantener proporción)
     const logoImg = new Image();
     logoImg.src = 'LOGO SIN FONDO.png';
@@ -213,18 +214,18 @@ function exportarAvancePDF() {
         const aspect = logoImg.width / logoImg.height;
         const logoH = logoW / aspect;
         doc.addImage(logoImg, 'PNG', 480, 30, logoW, logoH);
-        renderPDFContent(doc, avance, fecha);
+        renderPDFContent(doc, avance, fecha, fechaStr);
     };
     if (logoImg.complete) {
         const logoW = 80;
         const aspect = logoImg.width / logoImg.height;
         const logoH = logoW / aspect;
         doc.addImage(logoImg, 'PNG', 480, 30, logoW, logoH);
-        renderPDFContent(doc, avance, fecha);
+        renderPDFContent(doc, avance, fecha, fechaStr);
     }
 }
 
-function renderPDFContent(doc, avance, fecha) {
+function renderPDFContent(doc, avance, fecha, fechaStr) {
     let y = 50;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(20);
@@ -339,7 +340,7 @@ function renderPDFContent(doc, avance, fecha) {
     doc.setFontSize(9);
     doc.setTextColor(120,120,120);
     doc.text('Generado por el Simulador de Avance - Plan 17.13', 297.5, 820, {align:'center'});
-    doc.save('avance_plan_1713.pdf');
+    doc.save('avance_plan_1713-' + fechaStr + '.pdf');
 }
 
 function updateBarraProgreso() {
