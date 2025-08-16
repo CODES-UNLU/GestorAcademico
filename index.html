@@ -8,6 +8,16 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
+    <!-- Modal de Fase Beta -->
+    <div id="modalBeta" class="modal" style="display:flex;align-items:center;justify-content:center;">
+        <div class="modal-content" style="max-width:400px;text-align:center;">
+            <span id="closeModalBeta" class="close" style="font-size:2rem;top:0.5em;right:0.7em;">&times;</span>
+            <div style="font-size:2.2em;margin-bottom:0.3em;">🚧</div>
+            <h2 style="margin-bottom:0.5em;">Fase Beta</h2>
+            <p style="color:#2c3e50;font-size:1.08em;">Esta aplicación está en <b>Fase Beta</b>.<br>Puedes encontrar errores o cambios frecuentes.</p>
+            <button id="btnEntendidoBeta" class="btn btn-primary" style="margin-top:1.2em;display:block;margin-left:auto;margin-right:auto;">Entendido</button>
+        </div>
+    </div>
     <div class="container">
         <header class="header" style="display:flex;align-items:center;gap:1.5rem;">
             <img src="LOGO SIN FONDO.png" alt="Logo CODES++" class="logo-codes" style="height:60px;width:auto;display:block;">
@@ -38,5 +48,26 @@
             </div>
         </main>
     </div>
+    <script>
+      window.addEventListener('DOMContentLoaded', function() {
+        var modal = document.getElementById('modalBeta');
+        var closeBtn = document.getElementById('closeModalBeta');
+        var okBtn = document.getElementById('btnEntendidoBeta');
+        function closeModal() {
+          modal.style.display = 'none';
+          localStorage.setItem('betaModalVisto', '1');
+        }
+        closeBtn.onclick = closeModal;
+        okBtn.onclick = closeModal;
+        window.onclick = function(event) {
+          if (event.target === modal) closeModal();
+        };
+        if (!localStorage.getItem('betaModalVisto')) {
+          modal.style.display = 'flex';
+        } else {
+          modal.style.display = 'none';
+        }
+      });
+    </script>
 </body>
 </html>
