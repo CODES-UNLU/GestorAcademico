@@ -10,9 +10,12 @@
 <body>
     <div class="container">
         <!-- Header -->
-        <header class="header">
+        <header class="header" style="position:relative;">
             <h1><i class="fas fa-graduation-cap"></i> Gestor Académico de Sistemas</h1>
             <p>Simulador de avance, equivalencias y plan de estudios</p>
+            <div id="logoutContainer" style="display:none; position:absolute; top:2rem; right:2rem;">
+                <button id="btnLogout" class="btn btn-secondary" style="font-size:0.95rem; padding:0.5rem 1.2rem;">Cerrar sesión</button>
+            </div>
         </header>
 
         <!-- Navigation -->
@@ -30,6 +33,26 @@
 
         <!-- Main Content -->
         <main class="main-content">
+            <!-- Formulario de Login (visible solo si no está logueado) -->
+            <div id="loginContainer" class="login-container" style="max-width: 400px; margin: 2.5rem auto; display: none;">
+                <form id="loginForm" class="login-form" style="background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(102,126,234,0.08); padding: 2rem; display: flex; flex-direction: column; gap: 1.2rem;">
+                    <h2 style="text-align:center; color:#667eea; font-size:1.3rem; margin-bottom:0.5rem;">Iniciar sesión</h2>
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" required autocomplete="username" style="padding:0.7rem; border-radius:8px; border:1.5px solid #e0e0e0;">
+                    <label for="loginLegajo">Legajo</label>
+                    <input type="text" id="loginLegajo" required autocomplete="off" style="padding:0.7rem; border-radius:8px; border:1.5px solid #e0e0e0;">
+                    <label for="loginSede">Sede</label>
+                    <select id="loginSede" required style="padding:0.7rem; border-radius:8px; border:1.5px solid #e0e0e0;">
+                        <option value="">Selecciona una sede</option>
+                        <option value="Luján">Luján</option>
+                        <option value="Chivilcoy">Chivilcoy</option>
+                        <option value="San Miguel">San Miguel</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary" style="margin-top:0.5rem;">Ingresar</button>
+                </form>
+            </div>
+            <!-- Botón para cerrar sesión (visible solo si está logueado) -->
+            <!-- Eliminado de aquí, ahora está en el header -->
             <!-- Dashboard Tab -->
             <div id="dashboard" class="tab-content active">
                 <!-- Simulador de Avance de Carrera -->
@@ -37,17 +60,21 @@
                     <h2><i class="fas fa-chart-pie"></i> Simulador de Avance de Carrera</h2>
                     <!-- Bloque para iniciar simulador -->
                     <div class="iniciar-simulador" style="display: flex; flex-direction: column; align-items: center; gap: 1.2rem;">
-                        <select id="planSelector" class="btn" style="min-width: 180px; margin-bottom: 1rem;">
+                        <select id="planSelector" class="btn plan-selector" style="min-width: 180px; margin-bottom: 1rem;">
                             <option value="17.14" selected>Plan 17.14</option>
                             <option value="17.13">Plan 17.13</option>
                         </select>
                         <button class="btn btn-primary btn-large" onclick="iniciarSimulador()">
                             <i class="fas fa-play"></i> Iniciar Simulador
                         </button>
+                        <button class="btn btn-info" id="btnComoUsarSimulador" type="button" style="margin-top: 0.7em;">
+                            <i class="fas fa-question-circle"></i> ¿Cómo usar el simulador?
+                        </button>
                         <p class="simulador-info">Selecciona el plan y haz clic para comenzar a simular tu avance académico</p>
                     </div>
                     <!-- Contenido del Simulador (inicialmente oculto) -->
                     <div id="contenidoSimulador" class="contenido-simulador" style="display: none;">
+                        <!-- Quitar el botón de la barra superior del simulador -->
                         <div class="simulador-top-bar">
                             <button class="btn btn-secondary" id="btnSugerirMaterias" type="button">
                                 <i class="fas fa-lightbulb"></i> ¿Qué puedo cursar el próximo cuatrimestre?
@@ -950,6 +977,32 @@
                     <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal de ayuda para el simulador -->
+    <div id="modalComoUsarSimulador" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close" id="closeComoUsarSimulador">&times;</span>
+            <h2>¿Cómo usar el simulador?</h2>
+            <ol style="margin-top:1em;">
+                <li>Selecciona el plan de estudios que corresponda.</li>
+                <li>Haz clic en <b>Iniciar Simulador</b>.</li>
+                <li>En la línea de tiempo, marca el estado de cada materia según tu avance:
+                    <ul style="font-size:0.95em; color:#555; margin-top:0.5em;">
+                        <li><b>X</b> = Pendiente</li>
+                        <li><b>C</b> = Cursando</li>
+                        <li><b>R</b> = Regular</li>
+                        <li><b>F</b> = Final aprobado</li>
+                        <li><b>P</b> = Promocionada</li>
+                    </ul>
+                </li>
+                <li>Las materias "Disponibles" pueden ser cursadas, las "Bloqueadas" requieren aprobar correlativas.</li>
+                <li>Puedes ver un resumen de tu progreso y descargarlo en PDF.</li>
+                <li>Usa el botón "¿Qué puedo cursar el próximo cuatrimestre?" para sugerencias automáticas.</li>
+                <li>Para comenzar de nuevo, usa "Resetear Simulador".</li>
+            </ol>
+            <p style="margin-top:1em; color:#1976d2;">¡El simulador es solo orientativo y no reemplaza la consulta oficial en la universidad!</p>
         </div>
     </div>
 

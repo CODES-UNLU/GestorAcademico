@@ -370,11 +370,11 @@ let filteredEquivalencias = [...equivalencias];
 // Inicialización cuando se carga la página
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
-    setupEventListeners();
     updateDashboard();
     renderEquivalenciasTable();
     populateCategoryFilters();
-    initializeSimulador(); // Inicializar el simulador
+    initializeSimulador();
+    setupEventListeners(); // <-- debe ir después de que el DOM esté listo
     // Botón sugerir materias
     const btnSugerir = document.getElementById('btnSugerirMaterias');
     if (btnSugerir) {
@@ -384,6 +384,31 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnExportarPDF = document.getElementById('btnExportarPDF');
     if (btnExportarPDF) {
         btnExportarPDF.addEventListener('click', exportarAvancePDF);
+    }
+    // === LOGIN PERSISTENTE ===
+    mostrarLogin();
+    const loginData = getLoginData();
+    if (!loginData || !loginData.email || !loginData.legajo || !loginData.sede) {
+        mostrarLogin();
+    } else {
+        mostrarSimulador();
+    }
+    // === Mostrar modal de ayuda del simulador ===
+    const btnComoUsar = document.getElementById('btnComoUsarSimulador');
+    const modalComoUsar = document.getElementById('modalComoUsarSimulador');
+    const closeComoUsar = document.getElementById('closeComoUsarSimulador');
+    if (btnComoUsar && modalComoUsar && closeComoUsar) {
+        btnComoUsar.addEventListener('click', function() {
+            modalComoUsar.style.display = 'block';
+        });
+        closeComoUsar.addEventListener('click', function() {
+            modalComoUsar.style.display = 'none';
+        });
+        window.addEventListener('click', function(event) {
+            if (event.target === modalComoUsar) {
+                modalComoUsar.style.display = 'none';
+            }
+        });
     }
 });
 
@@ -532,25 +557,15 @@ function getCategoriaLabel(categoria) {
 // Poblar filtros de categoría
 function populateCategoryFilters() {
     const categorias = ['programacion', 'matematicas', 'sistemas', 'bases-datos', 'redes', 'inteligencia-artificial', 'otras'];
-    
     // Filtro principal
     const filterSelect = document.getElementById('categoriaFilter');
+    if (!filterSelect) return;
     filterSelect.innerHTML = '<option value="">Todas las categorías</option>';
-    
-    // Filtro de búsqueda
-    const searchSelect = document.getElementById('searchCategoria');
-    searchSelect.innerHTML = '<option value="">Todas las categorías</option>';
-    
     categorias.forEach(cat => {
         const option1 = document.createElement('option');
         option1.value = cat;
         option1.textContent = getCategoriaLabel(cat);
         filterSelect.appendChild(option1);
-        
-        const option2 = document.createElement('option');
-        option2.value = cat;
-        option2.textContent = getCategoriaLabel(cat);
-        searchSelect.appendChild(option2);
     });
 }
 
@@ -1181,35 +1196,66 @@ function renderMateriaTimeline(materia) {
         badgeData = estadosMateriaBadge[estado];
     }
     const badge = `<div class="badge" style="position:absolute;bottom:8px;right:10px;background:${badgeData.color};color:${badgeData.textColor || '#fff'};padding:2px 10px;border-radius:20px;font-size:0.8rem;font-weight:bold;z-index:10;opacity:0.95;">${badgeData.texto}</div>`;
+    // Si la materia está bloqueada, armar mensaje de correlativas faltantes
+    let correlativasFaltantesMsg = '';
+    if (estado === 'pendiente' && !puedeCursar && materia.correlativas && materia.correlativas.length > 0) {
+        // Solo mostrar correlativas "normales" (no especiales)
+        const correlativasNormales = materia.correlativas.filter(cor => !cor.startsWith('_'));
+        const faltantes = correlativasNormales.filter(cor => {
+            const est = estadoMateriasPorPlan[planSeleccionado][cor];
+            return est !== 'regular' && est !== 'promocionada' && est !== 'final-aprobado';
+        });
+        if (faltantes.length > 0) {
+            // Buscar nombres de las materias correlativas
+            let nombres = faltantes.map(cor => {
+                // Buscar en todos los cuatrimestres del plan actual
+                let nombre = cor;
+                for (const cuat of planEstudiosActual.cuatrimestres) {
+                    const mat = cuat.materias.find(m => m.codigo === cor);
+                    if (mat) { nombre = mat.nombre; break; }
+                }
+                return `${nombre} (${cor})`;
+            });
+            correlativasFaltantesMsg = `Para habilitar esta materia debes regularizar/promocionar/finalizar: ${nombres.join(', ')}`;
+        } else if (materia.correlativas.some(cor => cor.startsWith('_'))) {
+            correlativasFaltantesMsg = 'Para habilitar esta materia debes cumplir con todas las correlativas especiales.';
+        }
+    }
     return `
-        <div class="${materiaClass}" style="position:relative;">
+        <div class="${materiaClass}" style="position:relative;" ${correlativasFaltantesMsg ? `title=\"${correlativasFaltantesMsg}\"` : ''}>
             <div class="materia-nombre">${materia.nombre}</div>
             <div class="materia-info">
                 <div class="materia-codigo">${materia.codigo}</div>
                 <div class="estado-selector">
-                    <button type="button" class="estado-btn estado-pendiente${estado === 'pendiente' ? ' active' : ''}"
-                        onclick="cambiarEstadoMateria('${materia.codigo}', 'pendiente')" title="Pendiente">
+                    <button type="button" class="estado-btn estado-pendiente${estado === 'pendiente' ? ' active' : ''}" 
+                        ${!puedeCursar && estado === 'pendiente' ? 'disabled' : ''}
+                        ${!puedeCursar && estado === 'pendiente' ? '' : `onclick=\"cambiarEstadoMateria('${materia.codigo}', 'pendiente')\"`} title="Pendiente">
                         <span class="estado-letra">X</span>
                     </button>
                     <button type="button" class="estado-btn estado-cursando${estado === 'cursando' ? ' active' : ''}"
-                        onclick="cambiarEstadoMateria('${materia.codigo}', 'cursando')" title="Cursando">
+                        ${!puedeCursar ? 'disabled' : ''}
+                        ${!puedeCursar ? '' : `onclick=\"cambiarEstadoMateria('${materia.codigo}', 'cursando')\"`} title="Cursando">
                         <span class="estado-letra">C</span>
                     </button>
                     <button type="button" class="estado-btn estado-regular${estado === 'regular' ? ' active' : ''}"
-                        onclick="cambiarEstadoMateria('${materia.codigo}', 'regular')" title="Regular (Aprobada, pendiente final)">
+                        ${!puedeCursar ? 'disabled' : ''}
+                        ${!puedeCursar ? '' : `onclick=\"cambiarEstadoMateria('${materia.codigo}', 'regular')\"`} title="Regular (Aprobada, pendiente final)">
                         <span class="estado-letra">R</span>
                     </button>
                     <button type="button" class="estado-btn estado-final-aprobado${estado === 'final-aprobado' ? ' active' : ''}"
-                        onclick="cambiarEstadoMateria('${materia.codigo}', 'final-aprobado')" title="Final Aprobado">
+                        ${!puedeCursar ? 'disabled' : ''}
+                        ${!puedeCursar ? '' : `onclick=\"cambiarEstadoMateria('${materia.codigo}', 'final-aprobado')\"`} title="Final Aprobado">
                         <span class="estado-letra">F</span>
                     </button>
                     <button type="button" class="estado-btn estado-promocionada${estado === 'promocionada' ? ' active' : ''}"
-                        onclick="cambiarEstadoMateria('${materia.codigo}', 'promocionada')" title="Promocionada">
+                        ${!puedeCursar ? 'disabled' : ''}
+                        ${!puedeCursar ? '' : `onclick=\"cambiarEstadoMateria('${materia.codigo}', 'promocionada')\"`} title="Promocionada">
                         <span class="estado-letra">P</span>
                     </button>
                 </div>
             </div>
             ${badge}
+            ${correlativasFaltantesMsg ? `<div class='correlativas-faltantes-nota' style='color:#dc3545;font-size:0.85em;margin-top:4px;'>${correlativasFaltantesMsg}</div>` : ''}
         </div>
     `;
 }
@@ -1537,4 +1583,61 @@ function addPDFPie(doc) {
     doc.setTextColor(150, 150, 150);
     doc.text(`Gestor Académico de Sistemas  |  Generado el ${fecha}`, 297.5, 835, { align: 'center' });
     doc.setTextColor(30, 30, 30);
+}
+
+// === LOGIN PERSISTENTE ===
+function mostrarLogin() {
+    document.getElementById('loginContainer').style.display = 'block';
+    document.querySelector('.simulador-section').style.display = 'none';
+    document.getElementById('logoutContainer').style.display = 'none';
+}
+function mostrarSimulador() {
+    document.getElementById('loginContainer').style.display = 'none';
+    document.querySelector('.simulador-section').style.display = 'block';
+    document.getElementById('logoutContainer').style.display = 'block';
+}
+function getLoginData() {
+    try {
+        return JSON.parse(localStorage.getItem('simuladorLoginData'));
+    } catch { return null; }
+}
+function setLoginData(data) {
+    localStorage.setItem('simuladorLoginData', JSON.stringify(data));
+}
+function clearLoginData() {
+    localStorage.removeItem('simuladorLoginData');
+}
+// Al cargar la página, decide qué mostrar
+window.addEventListener('DOMContentLoaded', function() {
+    const loginData = getLoginData();
+    if (!loginData || !loginData.email || !loginData.legajo || !loginData.sede) {
+        mostrarLogin();
+    } else {
+        mostrarSimulador();
+    }
+});
+// Manejo del formulario de login
+const loginForm = document.getElementById('loginForm');
+if (loginForm) {
+    loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value.trim();
+        const legajo = document.getElementById('loginLegajo').value.trim();
+        const sede = document.getElementById('loginSede').value;
+        if (!email || !legajo || !sede) return;
+        setLoginData({ email, legajo, sede });
+        mostrarSimulador();
+        // Opcional: mostrar notificación de bienvenida
+        mostrarNotificacion('¡Bienvenido/a al simulador!', 'success');
+    });
+}
+// Botón cerrar sesión
+const btnLogout = document.getElementById('btnLogout');
+if (btnLogout) {
+    btnLogout.addEventListener('click', function() {
+        clearLoginData();
+        mostrarLogin();
+        // Opcional: mostrar notificación
+        mostrarNotificacion('Sesión cerrada correctamente', 'success');
+    });
 }
