@@ -1567,3 +1567,19 @@ tr:hover {
         grid-template-columns: 1fr;
     }
 }
+
+.intro-block {
+  background: #fffbe7 !important;
+  border: 3px solid #ffb300 !important;
+  box-shadow: 0 4px 24px rgba(255,193,7,0.15);
+  margin-bottom: 2.5em;
+}
+.intro-title {
+  color: #ff9800 !important;
+  font-weight: bold !important;
+  font-size: 1.25em !important;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}

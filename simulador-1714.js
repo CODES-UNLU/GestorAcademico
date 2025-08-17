@@ -4,6 +4,11 @@ console.log('Simulador Plan 17.14 listo.');
 
 // Estructura del plan 17.14 (copiada desde script.js)
 const plan1714 = [
+    { numero: 0, nombre: "Competencias y Talleres Introductorios", materias: [
+      { codigo: "19054", nombre: "Competencias Básicas en Informática", correlativas: [] },
+      { codigo: "39553", nombre: "Competencias Básicas en Idioma Inglés", correlativas: [] },
+      { codigo: "14026", nombre: "Taller Introductorio de Interpretación de Problemas", correlativas: [] }
+    ]},
     { numero: 1, nombre: "Primer Cuatrimestre", materias: [
       { codigo: "11271", nombre: "Introducción a la Programación", correlativas: [] },
       { codigo: "13014", nombre: "Matemática Básica", correlativas: [] },
@@ -60,6 +65,11 @@ const plan1714 = [
       { codigo: "21258", nombre: "Gestión de Proyectos", correlativas: ["21279"] },
       { codigo: "21257", nombre: "Aspectos Profesionales y Sociales", correlativas: ["21279"] },
       { codigo: "11091", nombre: "Taller de Tesina", correlativas: ["IX"] }
+    ]},
+    { numero: 11, nombre: "Actividades Finales de Licenciatura", materias: [
+      { codigo: "PSTC", nombre: "Prácticas Socio-Técnico-Culturales", correlativas: ["VI"] },
+      { codigo: "OPTATIVAS", nombre: "Actividades Optativas", correlativas: ["VI"] },
+      { codigo: "TESINA", nombre: "Tesina de Grado", correlativas: ["TODAS"] }
     ]}
 ];
 
@@ -98,13 +108,6 @@ function puedeCursarMateria(materia, avance) {
 function renderSimulador1714() {
     const avance = loadAvance();
     let html = '';
-    // Barra de progreso
-    // html += `<div id="barraProgresoContainer" style="width:100%;max-width:700px;margin:1.5em auto 0.5em auto;padding:0 1em;">
-    //     <div style="background:#e3e3e3;border-radius:12px;height:22px;position:relative;width:100%;">
-    //         <div id="barraProgreso" style="background:linear-gradient(90deg,#667eea,#28a745);height:100%;border-radius:12px 0 0 12px;width:0%;transition:width 0.5s;"></div>
-    //         <span id="barraProgresoTexto" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:1rem;font-weight:600;color:#333;">0%</span>
-    //     </div>
-    // </div>`;
     // Botón y sugerencias arriba del timeline
     html += '<div class="simulador-top-bar" style="display:flex;justify-content:center;margin-bottom:1.5em;">';
     html += '<button class="btn btn-secondary" id="btnSugerirMaterias" type="button">';
@@ -113,9 +116,10 @@ function renderSimulador1714() {
     html += '<div id="sugerenciasMaterias" style="display:none; margin-bottom: 1rem;"></div>';
     html += '<div class="timeline-container">';
     plan1714.forEach(cuat => {
-        html += `<div class="cuatrimestre-timeline">
-            <div class="cuatrimestre-header"><div class="cuatrimestre-title">${cuat.nombre}</div></div>
-            <div class="materias-grid">`;
+        const isIntro = cuat.numero === 0;
+        html += `<div class="cuatrimestre-timeline${isIntro ? ' intro-block' : ''}">`;
+        html += `<div class="cuatrimestre-header"><div class="cuatrimestre-title${isIntro ? ' intro-title' : ''}">${cuat.nombre}${isIntro ? ' <i class=\"fas fa-star\"></i>' : ''}</div></div>`;
+        html += '<div class="materias-grid">';
         cuat.materias.forEach(mat => {
             const estado = avance[mat.codigo] || 'pendiente';
             const puede = puedeCursarMateria(mat, avance);
@@ -139,7 +143,7 @@ function renderSimulador1714() {
             html += `</div></div>`;
             // Leyenda textual del estado actual
             const leyendas = {
-                'pendiente': 'Pendiente: aún no cursada ni disponible.',
+                'pendiente': 'Pendiente: aún no cursada.',
                 'cursando': 'Cursando: actualmente en curso.',
                 'regular': 'Regular: cursada y regularizada, falta final.',
                 'final-aprobado': 'Final aprobado: materia aprobada por final.',
