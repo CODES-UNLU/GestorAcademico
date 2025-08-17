@@ -45,6 +45,26 @@ const plan1713 = [
         { codigo: "41409", nombre: "Sistemas Distribuidos y Programación Paralela", correlativas: ["11085"] },
         { codigo: "11086", nombre: "Programación en Ambiente Web", correlativas: ["11058", "11085"] },
         { codigo: "11087", nombre: "Seminario de Integración Profesional", correlativas: ["31972", "10040", "11059", "11078"] }
+    ]},
+    { numero: 8, nombre: "Octavo Cuatrimestre (Licenciatura)", materias: [
+        { codigo: "11412", nombre: "Teoría de la Computación I", correlativas: ["11075"] },
+        { codigo: "11088", nombre: "Base de Datos Masivas (Gestión y Análisis)", correlativas: ["11059", "11078", "41408"] },
+        { codigo: "OPT1", nombre: "Optativa I", correlativas: ["(Requiere tener todas las materias del título Analista aprobadas con final o promoción)"] },
+        { codigo: "11060", nombre: "Sistemas de Información IV", correlativas: ["11059", "11078"] }
+    ]},
+    { numero: 9, nombre: "Noveno Cuatrimestre (Licenciatura)", materias: [
+        { codigo: "11089", nombre: "Sistemas Inteligentes", correlativas: ["11412", "11079"] },
+        { codigo: "OPT2", nombre: "Optativa II", correlativas: ["(Requiere tener todas las materias del título Analista aprobadas con final o promoción)"] },
+        { codigo: "11092", nombre: "Seguridad de la Información", correlativas: ["11085", "21057"] },
+        { codigo: "11090", nombre: "Recuperación de Información", correlativas: ["11078", "11086"] },
+        { codigo: "11091", nombre: "Taller de Tesina", correlativas: ["11412", "11088", "11060"] }
+    ]},
+    { numero: 10, nombre: "Décimo Cuatrimestre (Licenciatura)", materias: [
+        { codigo: "11417", nombre: "Teoría de la Computación II", correlativas: ["11412"] },
+        { codigo: "21058", nombre: "Gestión de Proyectos", correlativas: ["11060"] },
+        { codigo: "OPT3", nombre: "Optativa III", correlativas: ["(Requiere tener todas las materias del título Analista aprobadas con final o promoción)"] },
+        { codigo: "41410", nombre: "Calidad de los Sistemas de Información", correlativas: ["11060"] },
+        { codigo: "11095", nombre: "Tesina de Grado", correlativas: ["11091"] }
     ]}
 ];
 
@@ -137,6 +157,37 @@ function renderSimulador1713() {
         html += '</div></div>';
     });
     html += '</div>';
+    // Después de renderizar el timeline y antes del resumen y acciones
+    // Verificar si completó Analista
+    const codigosAnalista = [].concat(
+        ...plan1713.filter(c => c.numero <= 7).map(c => c.materias.map(m => m.codigo))
+    );
+    const avanceAnalista = codigosAnalista.every(cod => {
+        const estado = avance[cod];
+        return estado === 'final-aprobado' || estado === 'promocionada';
+    });
+    // Mostrar modal de felicitación solo una vez
+    if (avanceAnalista && !localStorage.getItem('felicitacionAnalista1713')) {
+        setTimeout(() => {
+            const modal = document.createElement('div');
+            modal.id = 'modalFelicitacionAnalista';
+            modal.style = 'position:fixed;z-index:2000;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;';
+            modal.innerHTML = `
+                <div style="background:#e6ffe6;border:2px solid #28a745;border-radius:14px;max-width:420px;width:90vw;padding:2em 1.5em;text-align:center;box-shadow:0 4px 32px rgba(40,167,69,0.13);position:relative;">
+                    <button id='cerrarFelicitacionAnalista' style="position:absolute;top:0.7em;right:1em;font-size:1.7em;background:none;border:none;color:#256029;cursor:pointer;">&times;</button>
+                    <div style="font-size:2.5em;margin-bottom:0.3em;">🎉</div>
+                    <h2 style="margin-bottom:0.5em;">¡Felicitaciones!</h2>
+                    <div style="font-size:1.13em;color:#256029;">Desde <b>CODES++</b> te felicitamos por completar todas las materias del título Analista Universitario en Sistemas.<br>¡A seguir avanzando por la Licenciatura!</div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            document.getElementById('cerrarFelicitacionAnalista').onclick = () => {
+                modal.remove();
+            };
+            // Guardar que ya se mostró
+            localStorage.setItem('felicitacionAnalista1713', '1');
+        }, 500);
+    }
     // Resumen y acciones
     html += '<div class="progreso-resumen" style="margin-top:2em;">' + resumenProgreso(avance) + '</div>';
     html += '<div style="margin-top:1.5em; display:flex; gap:1em; justify-content:center; flex-wrap:wrap;">' +
@@ -340,7 +391,28 @@ function renderPDFContent(doc, avance, fecha, fechaStr) {
     doc.setFontSize(9);
     doc.setTextColor(120,120,120);
     doc.text('Generado por el Simulador de Avance - Plan 17.13', 297.5, 820, {align:'center'});
+    // Mensaje aclaratorio
+    doc.setFontSize(10);
+    doc.setTextColor(200,0,0);
+    doc.text('Este documento es solo informativo y no posee valor oficial.', 297.5, 840, {align:'center'});
     doc.save('avance_plan_1713-' + fechaStr + '.pdf');
+}
+
+function animateBarraProgreso(targetPorc) {
+    const barra = document.getElementById('barraProgreso');
+    const texto = document.getElementById('barraProgresoTexto');
+    if (!barra || !texto) return;
+    let current = parseInt(barra.getAttribute('data-porc')) || 0;
+    const step = () => {
+        if (current === targetPorc) return;
+        if (current < targetPorc) current++;
+        else if (current > targetPorc) current--;
+        barra.style.width = current + '%';
+        texto.textContent = current + '%';
+        barra.setAttribute('data-porc', current);
+        if (current !== targetPorc) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
 }
 
 function updateBarraProgreso() {
@@ -354,10 +426,7 @@ function updateBarraProgreso() {
         }
     }
     const porc = total > 0 ? Math.round((aprobadas / total) * 100) : 0;
-    const barra = document.getElementById('barraProgreso');
-    const texto = document.getElementById('barraProgresoTexto');
-    if (barra) barra.style.width = porc + '%';
-    if (texto) texto.textContent = porc + '%';
+    animateBarraProgreso(porc);
 }
 
 // Inicialización y eventos

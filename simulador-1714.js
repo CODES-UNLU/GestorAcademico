@@ -363,7 +363,28 @@ function renderPDFContent(doc, avance, fecha, fechaStr) {
     doc.setFontSize(9);
     doc.setTextColor(120,120,120);
     doc.text('Generado por el Simulador de Avance - Plan 17.14', 297.5, 820, {align:'center'});
+    // Mensaje aclaratorio
+    doc.setFontSize(10);
+    doc.setTextColor(200,0,0);
+    doc.text('Este documento es solo informativo y no posee valor oficial.', 297.5, 840, {align:'center'});
     doc.save('avance_plan_1714-' + fechaStr + '.pdf');
+}
+
+function animateBarraProgreso(targetPorc) {
+    const barra = document.getElementById('barraProgreso');
+    const texto = document.getElementById('barraProgresoTexto');
+    if (!barra || !texto) return;
+    let current = parseInt(barra.getAttribute('data-porc')) || 0;
+    const step = () => {
+        if (current === targetPorc) return;
+        if (current < targetPorc) current++;
+        else if (current > targetPorc) current--;
+        barra.style.width = current + '%';
+        texto.textContent = current + '%';
+        barra.setAttribute('data-porc', current);
+        if (current !== targetPorc) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
 }
 
 function updateBarraProgreso() {
@@ -377,10 +398,7 @@ function updateBarraProgreso() {
         }
     }
     const porc = total > 0 ? Math.round((aprobadas / total) * 100) : 0;
-    const barra = document.getElementById('barraProgreso');
-    const texto = document.getElementById('barraProgresoTexto');
-    if (barra) barra.style.width = porc + '%';
-    if (texto) texto.textContent = porc + '%';
+    animateBarraProgreso(porc);
 }
 
 // Inicialización y eventos
